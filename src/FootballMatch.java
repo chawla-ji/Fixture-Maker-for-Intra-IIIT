@@ -1,22 +1,22 @@
 public class FootballMatch {
-    private final String homeTeam;
-    private final String awayTeam;
+    private final String firstMatch;  // First match (formerly home team)
+    private final String secondMatch; // Second match (formerly away team)
 
-    public FootballMatch(String homeTeam, String awayTeam) {
-        this.homeTeam = homeTeam;
-        this.awayTeam = awayTeam;
+    public FootballMatch(String firstMatch, String secondMatch) {
+        this.firstMatch = firstMatch;
+        this.secondMatch = secondMatch;
     }
 
-    public String getHomeTeam() {
-        return homeTeam;
+    public String getFirstMatch() {
+        return firstMatch;
     }
 
-    public String getAwayTeam() {
-        return awayTeam;
+    public String getSecondMatch() {
+        return secondMatch;
     }
 
     @Override
     public String toString() {
-        return homeTeam + " vs " + awayTeam;
+        return firstMatch + " vs " + secondMatch;
     }
 }

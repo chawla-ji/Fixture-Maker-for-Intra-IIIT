@@ -2,66 +2,85 @@ import java.util.*;
 
 public class FixtureBuilder {
     private final List<String> teams;
-    private final boolean fullSeason;
+    private final List<String> tempTeams;
+    private final Set<FootballMatch> matches;
     private final Set<String> playedMatches;
     private final List<FootballMatch> rematch;
-    private final Map<Integer, Set<FootballMatch>> footballMap;
+    private final Map<Integer, Set<FootballMatch>> soccerMap;
 
     public FixtureBuilder(List<String> teams, boolean fullSeason) {
         this.teams = new ArrayList<>(teams);
-        this.fullSeason = fullSeason;
+        this.tempTeams = new ArrayList<>(teams);
 
+        // If the number of teams is odd, add a "Bye" team
         if (this.teams.size() % 2 != 0) {
-            this.teams.add("Bye"); // Handle odd number of teams
+            this.teams.add("Bye");
+            this.tempTeams.add("Bye");
         }
 
-        this.playedMatches = new HashSet<>();
+        this.matches = new HashSet<>();
         this.rematch = new ArrayList<>();
-        this.footballMap = new HashMap<>();
+        this.soccerMap = new HashMap<>();
+        this.playedMatches = new HashSet<>();
     }
 
     public Map<Integer, Set<FootballMatch>> build() {
-        int totalRounds = (fullSeason ? 2 : 1) * (teams.size() - 1);
-        List<String> tempTeams = new ArrayList<>(teams);
-        int matchCounter = 0;
+        int week = (this.teams.size() - 1) * 2; // Total rounds including rematches
+        int firstMatchIndex, secondMatchIndex;
+        int k = 0;
 
-        for (int round = 1; round <= totalRounds; round++) {
-            Set<FootballMatch> currentRound = new HashSet<>();
+        for (int i = 1; i <= week; i++) {
+            Set<FootballMatch> currentWeekMatches = new HashSet<>();
 
             // Handle rematches for the second half of the season
-            if (round > totalRounds / 2 && fullSeason) {
-                for (int i = 0; i < rematch.size(); i++) {
-                    FootballMatch originalMatch = rematch.get(matchCounter++);
-                    currentRound.add(new FootballMatch(originalMatch.getAwayTeam(), originalMatch.getHomeTeam()));
+            if (i > week / 2) {
+                int l = this.teams.size() / 2;
+                while (l > 0) {
+                    currentWeekMatches.add(new FootballMatch(rematch.get(k).getSecondMatch(), rematch.get(k).getFirstMatch()));
+                    l--;
+                    k++;
                 }
-                footballMap.put(round, currentRound);
+                this.soccerMap.put(i, currentWeekMatches);
                 continue;
             }
 
-            // Scheduling the matches for the round
-            while (tempTeams.size() > 1) {
-                String home = tempTeams.remove(0);
-                String away = tempTeams.remove(0);
+            // Generate matches for the current week
+            for (int j = 0; j < this.teams.size() / 2; j++) {
+                firstMatchIndex = randomIndex(tempTeams.size());
+                secondMatchIndex = randomIndex(tempTeams.size());
+                FootballMatch match = new FootballMatch(tempTeams.get(firstMatchIndex), tempTeams.get(secondMatchIndex));
 
-                FootballMatch match = new FootballMatch(home, away);
-                while (playedMatches.contains(match.toString())) {
-                    tempTeams.add(home);
-                    tempTeams.add(away);
-                    Collections.shuffle(tempTeams);
-                    home = tempTeams.remove(0);
-                    away = tempTeams.remove(0);
-                    match = new FootballMatch(home, away);
+                // Ensure valid matches (no duplicate pairings)
+                while (firstMatchIndex == secondMatchIndex || playedMatches.contains(match.toString())) {
+                    firstMatchIndex = randomIndex(tempTeams.size());
+                    secondMatchIndex = randomIndex(tempTeams.size());
+                    match = new FootballMatch(tempTeams.get(firstMatchIndex), tempTeams.get(secondMatchIndex));
                 }
 
-                currentRound.add(match);
+                currentWeekMatches.add(match);
                 playedMatches.add(match.toString());
-                rematch.add(match);
+
+                // Add the reverse match for rematches
+                FootballMatch reverseMatch = new FootballMatch(tempTeams.get(secondMatchIndex), tempTeams.get(firstMatchIndex));
+                rematch.add(reverseMatch);
+
+                // Remove teams from the list for the next match
+                tempTeams.remove(firstMatchIndex);
+                tempTeams.remove(secondMatchIndex > firstMatchIndex ? secondMatchIndex - 1 : secondMatchIndex);
             }
 
+            // Restore the temporary team list for the next round
             tempTeams.addAll(teams);
-            footballMap.put(round, currentRound);
+
+            // Store matches for the current week
+            this.soccerMap.put(i, currentWeekMatches);
         }
 
-        return footballMap;
+        return this.soccerMap;
+    }
+
+    private int randomIndex(int size) {
+        Random random = new Random();
+        return random.nextInt(size);
     }
 }
