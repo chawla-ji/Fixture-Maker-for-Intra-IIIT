@@ -30,14 +30,15 @@ public class Main {
             String seasonChoice = scanner.nextLine().trim();
             boolean fullSeason = seasonChoice.equalsIgnoreCase("yes");
 
+            // Pass the list of teams and fullSeason to the FixtureBuilder
             FixtureBuilder fixtureBuilder = new FixtureBuilder(teams, fullSeason);
-            Map<Integer, Set<FootballMatch>> footballMap = fixtureBuilder.build();
+            Map<Integer, Set<FootballMatch>> soccerMap = fixtureBuilder.build();  // Updated to use FootballMatch
 
             System.out.println("\nGenerated Fixtures for Khel 2023:");
-            for (Map.Entry<Integer, Set<FootballMatch>> entry : footballMap.entrySet()) {
+            for (Map.Entry<Integer, Set<FootballMatch>> entry : soccerMap.entrySet()) {
                 System.out.println("Round " + entry.getKey());
                 for (FootballMatch match : entry.getValue()) {
-                    System.out.println(match);
+                    System.out.println(match);  // Updated to use FootballMatch
                 }
                 System.out.println("-------------------------------");
             }
